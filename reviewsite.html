@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Site</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .container {
+            background-color: #121212;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #ffffff;
+        }
+        .review-form {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 10px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .star-rating {
+            margin: 15px 0;
+            direction: ltr;
+            display: inline-block;
+        }
+        .star-rating input {
+            display: none;
+        }
+        .star-rating label {
+            float: right; /* This is key for the right-to-left filling */
+            padding: 0;
+            font-size: 30px;
+            color: #333;
+            cursor: pointer;
+        }
+        /* When a star or any star to its right is checked, fill with yellow */
+        .star-rating input:checked ~ label {
+            color: #ffd700;
+        }
+        /* When hovering a star, also affect stars to the left */
+        .star-rating:not(:checked) > label:hover,
+        .star-rating:not(:checked) > label:hover ~ label {
+            color: #ffd700;
+        }
+        /* Clear the left float to ensure proper layout */
+        .star-rating:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .rating-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .rating-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin: 15px auto 0;
+            display: block;
+        }
+        button:hover {
+            background-color: #3e8e41;
+        }
+        .reviews {
+            margin-top: 20px;
+        }
+        .review {
+            background-color: #1a1a1a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .stars-display {
+            direction: ltr;
+        }
+        .star {
+            color: #333; /* Dark gray for empty stars */
+            font-size: 20px;
+        }
+        .star.filled {
+            color: #ffd700; /* Yellow for filled stars */
+        }
+        .date {
+            color: #aaa;
+            font-size: 14px;
+        }
+        .review-text {
+            color: #ffffff;
+        }
+        .no-reviews {
+            text-align: center;
+            color: #aaa;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trade with Aiokiee</h1>
+        
+        <div class="review-form">
+            <h2>Write a Review about the trade!</h2>
+            <textarea id="review-text" placeholder="Write your review here..."></textarea>
+            
+            <div class="rating-container">
+                <!-- Note: We use the reversed order for proper CSS selection -->
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5" />
+                    <label for="star5" title="5 stars">★</label>
+                    <input type="radio" id="star4" name="rating" value="4" />
+                    <label for="star4" title="4 stars">★</label>
+                    <input type="radio" id="star3" name="rating" value="3" />
+                    <label for="star3" title="3 stars">★</label>
+                    <input type="radio" id="star2" name="rating" value="2" />
+                    <label for="star2" title="2 stars">★</label>
+                    <input type="radio" id="star1" name="rating" value="1" />
+                    <label for="star1" title="1 star">★</label>
+                </div>
+                <div class="rating-text">Your opinion is helpful!</div>
+            </div>
+            
+            <button id="submit-review">Submit Review</button>
+        </div>
+        
+        <div class="reviews">
+            <h2>Recent Reviews</h2>
+            <div id="reviews-container">
+                <p class="no-reviews">No reviews yet. Be the first to share your experience!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load existing reviews from localStorage
+            let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            displayReviews(reviews);
+            
+            // Submit review form
+            document.getElementById('submit-review').addEventListener('click', function() {
+                const reviewText = document.getElementById('review-text').value.trim();
+                const ratingElement = document.querySelector('input[name="rating"]:checked');
+                
+                if (!reviewText) {
+                    alert('Please write a review before submitting.');
+                    return;
+                }
+                
+                if (!ratingElement) {
+                    alert('Please select a rating.');
+                    return;
+                }
+                
+                const rating = parseInt(ratingElement.value);
+                
+                // Create new review object
+                const newReview = {
+                    text: reviewText,
+                    rating: rating,
+                    date: new Date().toISOString()
+                };
+                
+                // Add to reviews array
+                reviews.unshift(newReview);
+                
+                // Save to localStorage
+                localStorage.setItem('reviews', JSON.stringify(reviews));
+                
+                // Display updated reviews
+                displayReviews(reviews);
+                
+                // Reset form
+                document.getElementById('review-text').value = '';
+                const checkedStar = document.querySelector('input[name="rating"]:checked');
+                if (checkedStar) {
+                    checkedStar.checked = false;
+                }
+            });
+            
+            // Function to display reviews
+            function displayReviews(reviews) {
+                const container = document.getElementById('reviews-container');
+                
+                if (reviews.length === 0) {
+                    container.innerHTML = '<p class="no-reviews">No reviews yet. Be the first to share your experience!</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                reviews.forEach(review => {
+                    const reviewElement = document.createElement('div');
+                    reviewElement.className = 'review';
+                    
+                    const date = new Date(review.date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                    
+                    // Create stars display (left to right with progressive filling)
+                    let starsHTML = '<div class="stars-display">';
+                    for (let i = 1; i <= 5; i++) {
+                        if (i <= review.rating) {
+                            starsHTML += '<span class="star filled">★</span>';
+                        } else {
+                            starsHTML += '<span class="star">★</span>';
+                        }
+                    }
+                    starsHTML += '</div>';
+                    
+                    reviewElement.innerHTML = `
+                        <div class="review-header">
+                            ${starsHTML}
+                            <span class="date">${formattedDate}</span>
+                        </div>
+                        <p class="review-text">${review.text}</p>
+                    `;
+                    
+                    container.appendChild(reviewElement);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
